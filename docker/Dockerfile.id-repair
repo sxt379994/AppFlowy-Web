@@ -1,0 +1,9 @@
+# Preserve the deployed runtime, entrypoint, and mobile baseline. Only static
+# assets are replaced; older hashed chunks remain for already-open browser tabs.
+# The preflight asserts this local-only tag's immutable image ID before build.
+# BuildKit attempts a registry fetch for a local image named by digest.
+FROM appflowy-web-tief:0.18.5-tief.2
+COPY dist/ /usr/share/nginx/html/
+LABEL dev.tief.release="0.18.5-tief.3-row-id.1" \
+      dev.tief.base-revision="86feb976d320e3ced95b7acaff57009f4935fcbe" \
+      dev.tief.scope="API row ID compatibility; mobile redesign excluded"

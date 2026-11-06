@@ -764,6 +764,25 @@ describe('database blob prefetch deduplication', () => {
     });
   });
 
+  it('persists hash-derived API row bytes under their unchanged object ID', async () => {
+    const databaseId = 'database-api-row-id';
+    const rowId = 'fdeff667-1ef3-1a2a-d01b-e4dfd9b5ceda';
+    const response = persistablePage({ timestamp: 501, seqNo: 1 });
+
+    response.creates[0].rowId = Uint8Array.from([
+      0xfd, 0xef, 0xf6, 0x67, 0x1e, 0xf3, 0x1a, 0x2a, 0xd0, 0x1b, 0xe4, 0xdf, 0xd9, 0xb5, 0xce, 0xda,
+    ]);
+    databaseIds.add(databaseId);
+    mockedDatabaseBlobDiff.mockResolvedValueOnce(response);
+    await prefetchDatabaseBlobDiff('workspace-api-row-id', databaseId);
+
+    expect(mockedOpenRowCollabDB.mock.calls[0]).toContain(rowId);
+    expect(mockedApplyYDoc).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(localStorage.getItem(`af_database_blob_rid:${databaseId}`) ?? 'null')).toEqual({
+      timestamp: 501, seqNo: 1,
+    });
+  });
+
   it('applies an authoritative row tombstone before advancing the RID', async () => {
     const databaseId = 'database-delete-success';
 

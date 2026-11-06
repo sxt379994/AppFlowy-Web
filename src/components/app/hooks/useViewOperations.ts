@@ -26,6 +26,7 @@ import { findSharedAccessLevel, findView } from '@/components/_shared/outline/ut
 import { CollabDocResetPayload } from '@/components/ws/sync/types';
 import { Log } from '@/utils/log';
 import { getPlatform } from '@/utils/platform';
+import { isMobileEditingEnabled } from '@/utils/runtime-config';
 
 import { useAuthInternal } from '../contexts/AuthInternalContext';
 import { useSyncInternal } from '../contexts/SyncInternalContext';
@@ -51,7 +52,10 @@ export function getViewReadOnlyStatus(
 ) {
   const isMobile = getPlatform().isMobile;
 
-  if (isMobile) return true; // Mobile has highest priority - always readonly
+  // Upstream AppFlowy Web deliberately makes every mobile view read-only.
+  // Keep that safe default, but let self-hosted deployments opt into the
+  // regular lock and permission checks once their mobile workflow is tested.
+  if (isMobile && !isMobileEditingEnabled()) return true;
 
   // Lock check uses the resolved view first, falling back to the outline so
   // direct-URL loads (before outline arrives) still honor the lock.
