@@ -2,6 +2,7 @@ interface RuntimeConfig {
   APPFLOWY_BASE_URL?: string;
   APPFLOWY_GOTRUE_BASE_URL?: string;
   APPFLOWY_WS_BASE_URL?: string;
+  APPFLOWY_MOBILE_EDITING?: string;
 }
 
 declare global {
@@ -28,6 +29,10 @@ export function getConfigValue(key: keyof RuntimeConfig, defaultValue: string): 
   }
 
   return defaultValue;
+}
+
+export function isMobileEditingEnabled(): boolean {
+  return getConfigValue('APPFLOWY_MOBILE_EDITING', 'false').toLowerCase() === 'true';
 }
 
 /**

@@ -34,6 +34,10 @@ function viewWithExtra(extra: View['extra']): View {
 }
 
 describe('row-document lifecycle helpers', () => {
+  it('opens the original document namespace for a hash-derived API row', () => {
+    expect(rowDocumentIdFromRowId('fdeff667-1ef3-1a2a-d01b-e4dfd9b5ceda'))
+      .toBe('813f0adc-f035-551d-a944-164fba87e59b');
+  });
   beforeEach(() => {
     jest.clearAllMocks();
   });

@@ -10,7 +10,7 @@ import GridNewRow from '@/components/database/components/grid/grid-row/GridNewRo
 import GridVirtualRow from '@/components/database/components/grid/grid-row/GridVirtualRow';
 import GridStickyHeader from '@/components/database/components/grid/grid-table/GridStickyHeader';
 import { useGridDnd } from '@/components/database/components/grid/grid-table/useGridDnd';
-import { PADDING_INLINE, useGridVirtualizer } from '@/components/database/components/grid/grid-table/useGridVirtualizer';
+import { useGridVirtualizer } from '@/components/database/components/grid/grid-table/useGridVirtualizer';
 import DatabaseStickyBottomOverlay from '@/components/database/components/sticky-overlay/DatabaseStickyBottomOverlay';
 import DatabaseStickyHorizontalScrollbar from '@/components/database/components/sticky-overlay/DatabaseStickyHorizontalScrollbar';
 import DatabaseStickyTopOverlay from '@/components/database/components/sticky-overlay/DatabaseStickyTopOverlay';
@@ -43,7 +43,7 @@ function GridVirtualizer({ columns }: { columns: RenderColumn[] }) {
   const { handleResizeStart, isResizing } = useColumnResize(columns);
   const { embeddedHeight, isDocumentBlock, paddingEnd } = useDatabaseContext();
 
-  const { parentRef, virtualizer, columnVirtualizer, scrollMarginTop, isReady } = useGridVirtualizer({
+  const { parentRef, virtualizer, columnVirtualizer, scrollMarginTop, isReady, effectivePaddingEnd } = useGridVirtualizer({
     data,
     columns,
   });
@@ -249,7 +249,7 @@ function GridVirtualizer({ columns }: { columns: RenderColumn[] }) {
                   <div
                     style={{
                       paddingLeft: columnItems[0]?.start,
-                      paddingRight: isDocumentBlock ? 0 : PADDING_INLINE,
+                      paddingRight: isDocumentBlock ? 0 : effectivePaddingEnd,
                       width: totalSize - (paddingEnd ?? 0),
                     }}
                   >
@@ -260,7 +260,7 @@ function GridVirtualizer({ columns }: { columns: RenderColumn[] }) {
                     ) : rowData.type === RenderRowType.GroupSeparator ? (
                       <div aria-hidden className='h-3 min-w-full bg-fill-content' />
                     ) : (
-                      <GridNewRow groupFieldId={rowData.groupFieldId} groupId={rowData.groupId} />
+                      <GridNewRow compact={columns.some((column) => column.isCompact)} groupFieldId={rowData.groupFieldId} groupId={rowData.groupId} />
                     )}
                   </div>
                 ) : (

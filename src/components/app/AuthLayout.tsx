@@ -3,10 +3,10 @@ import { memo } from 'react';
 import { AppProvider } from '@/components/app/AppProvider';
 import MainLayout from '@/components/app/MainLayout';
 import MobileMainLayout from '@/components/app/MobileMainLayout';
-import { getPlatform } from '@/utils/platform';
+import { useCompactLayout } from '@/utils/use-compact-layout';
 
 export function AuthLayout () {
-  const isMobile = getPlatform().isMobile;
+  const isMobile = useCompactLayout();
 
   return (
     <AppProvider>

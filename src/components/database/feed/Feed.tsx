@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDatabaseContext, useFieldsSelector, usePrimaryFieldId, useReadOnly } from '@/application/database-yjs';
 import type { Row } from '@/application/database-yjs';
 import { useDatabaseSearch } from '@/components/database/components/conditions/DatabaseSearchContext';
 import { cn } from '@/lib/utils';
+import { useCompactLayout, useElementWidth } from '@/utils/use-compact-layout';
 
 import { FEED_DESKTOP_INLINE_PADDING, FEED_INITIAL_ROW_LIMIT, FEED_LOAD_MORE_INCREMENT } from './feed.constants';
 import { FeedCard } from './FeedCard';
@@ -17,6 +18,10 @@ import { useFeedSearch } from './useFeedSearch';
  * newest first, with incremental rendering and a trailing "new page" action.
  */
 export function Feed() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const containerWidth = useElementWidth(containerRef);
+  const compactLayout = useCompactLayout();
+  const compact = compactLayout || (containerWidth !== undefined && containerWidth < 768);
   const primaryFieldId = usePrimaryFieldId();
   const fields = useFieldsSelector();
   const readOnly = useReadOnly();
@@ -50,13 +55,13 @@ export function Feed() {
     isDocumentBlock ? 'overflow-visible' : 'h-full flex-1 overflow-y-auto overflow-x-hidden'
   );
   const contentStyle = {
-    paddingInlineEnd: paddingEnd ?? FEED_DESKTOP_INLINE_PADDING,
-    paddingInlineStart: paddingStart ?? FEED_DESKTOP_INLINE_PADDING,
+    paddingInlineEnd: paddingEnd ?? (compact ? 16 : FEED_DESKTOP_INLINE_PADDING),
+    paddingInlineStart: paddingStart ?? (compact ? 16 : FEED_DESKTOP_INLINE_PADDING),
   };
 
   if (rowOrders === undefined || !primaryFieldId) {
     return (
-      <div className={containerClassName} data-testid='database-feed'>
+      <div ref={containerRef} className={containerClassName} data-testid='database-feed'>
         <FeedLoadingIndicator fillAvailable={!isDocumentBlock} />
       </div>
     );
@@ -64,14 +69,14 @@ export function Feed() {
 
   if (rowOrders.length === 0) {
     return (
-      <div className={containerClassName} data-testid='database-feed'>
+      <div ref={containerRef} className={containerClassName} data-testid='database-feed'>
         <FeedEmptyState />
       </div>
     );
   }
 
   return (
-    <div className={containerClassName} data-testid='database-feed'>
+    <div ref={containerRef} className={containerClassName} data-testid='database-feed'>
       <FeedMembersProvider>
         <div className='w-full py-2' data-testid='feed-list' style={contentStyle}>
           <FeedCards

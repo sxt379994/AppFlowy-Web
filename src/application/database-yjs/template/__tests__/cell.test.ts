@@ -97,6 +97,16 @@ function template(defaultCells: Record<string, TemplateCellValue>): DatabaseRowT
 }
 
 describe('database row template cells', () => {
+  it('keeps hash-derived relation row IDs while rejecting malformed references', () => {
+    const apiRowId = 'fdeff667-1ef3-1a2a-d01b-e4dfd9b5ceda';
+    const result = sanitizeTemplateCells(database(), {
+      relation: { type: 'relation', value: [apiRowId, apiRowId, 'not-a-row', relatedRowIdA] },
+      person: { type: 'legacy', value: apiRowId },
+    });
+
+    expect(result.relation).toEqual({ type: 'relation', value: [apiRowId, relatedRowIdA] });
+    expect(result.person).toBeUndefined();
+  });
   it('sanitizes typed and legacy values using Desktop-compatible rules', () => {
     const result = sanitizeTemplateCells(database(), {
       name: { type: 'legacy', value: '  Issue  ' },

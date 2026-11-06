@@ -2,13 +2,16 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import SwipeableViews from 'react-swipeable-views';
 
+import { UIVariant } from '@/application/types';
+
 import MobileMore from '@/components/_shared/mobile-topbar/MobileMore';
 import { AFScroller } from '@/components/_shared/scroller';
 import { ViewTab, ViewTabs } from '@/components/_shared/tabs/ViewTabs';
-import { useAppOutline, useAppViewId, useToView } from '@/components/app/app.hooks';
+import { useAppOutline, useAppViewId, useCurrentWorkspaceId, useLoadedViewIds, useLoadViewChildren, useToView } from '@/components/app/app.hooks';
 import MobileFavorite from '@/components/app/favorite/MobileFavorite';
 import MobileRecent from '@/components/app/recent/MobileRecent';
 import MobileWorkspaces from '@/components/app/workspaces/MobileWorkspaces';
+import { Search } from '@/components/app/search/Search';
 
 
 import MobileOutline from 'src/components/_shared/mobile-outline/MobileOutline';
@@ -23,6 +26,9 @@ function MobileFolder({ onClose }: { onClose: () => void }) {
   const outline = useAppOutline();
   const viewId = useAppViewId();
   const navigateToView = useToView();
+  const workspaceId = useCurrentWorkspaceId();
+  const loadChildren = useLoadViewChildren();
+  const loadedViewIds = useLoadedViewIds();
   const [selectedTab, setSelectedTab] = React.useState<ViewTabsKey>(ViewTabsKey.Space);
   const { t } = useTranslation();
 
@@ -35,6 +41,7 @@ function MobileFolder({ onClose }: { onClose: () => void }) {
           </div>
           <MobileMore onClose={onClose} />
         </div>
+        <Search onNavigate={onClose} />
         <ViewTabs
           value={selectedTab}
           sx={{
@@ -60,7 +67,7 @@ function MobileFolder({ onClose }: { onClose: () => void }) {
       >
         <div className={'transform-gpu px-2 pb-[60px]'}>
           {outline && (
-            <MobileOutline outline={outline} onClose={onClose} selectedViewId={viewId} navigateToView={navigateToView} />
+            <MobileOutline key={workspaceId} variant={UIVariant.App} outline={outline} onClose={onClose} selectedViewId={viewId} navigateToView={navigateToView} loadChildren={loadChildren} loadedViewIds={loadedViewIds} />
           )}
         </div>
         <div className={'transform-gpu px-2 pb-[60px]'}>

@@ -53,6 +53,7 @@ import {
 } from '@/components/inline-comment/InlineCommentContext';
 import { useCurrentUser } from '@/components/main/app.hooks';
 import { cn } from '@/lib/utils';
+import { useCompactLayout } from '@/utils/use-compact-layout';
 import { ViewService, WorkspaceService } from '@/application/services/domains';
 import { getAxiosInstance } from '@/application/services/js-services/http';
 
@@ -70,6 +71,7 @@ const Transition = React.forwardRef(function Transition(
 });
 
 function ViewModal({ viewId, open, onClose }: { viewId?: string; open: boolean; onClose: () => void }) {
+  const compact = useCompactLayout();
   const workspaceId = useCurrentWorkspaceId();
   const { t } = useTranslation();
   const operations = useAppOperations();
@@ -335,12 +337,14 @@ function ViewModal({ viewId, open, onClose }: { viewId?: string; open: boolean; 
 
     return (
       <div
-        className={'sticky top-0 z-[10] flex w-full items-center justify-between gap-2 bg-surface-primary px-4 py-4'}
+        className={'sticky top-0 z-[10] flex w-full shrink-0 flex-wrap items-center justify-between gap-2 bg-surface-primary px-4 py-2'}
       >
         <div className={'flex items-center gap-4'}>
           <Tooltip title={t('tooltip.openAsPage')}>
             <IconButton
               size={'small'}
+              aria-label={t('tooltip.openAsPage')}
+              sx={compact ? { width: 44, height: 44 } : undefined}
               onClick={async () => {
                 await toView(effectiveViewId);
                 handleClose();
@@ -393,13 +397,13 @@ function ViewModal({ viewId, open, onClose }: { viewId?: string; open: boolean; 
           )}
 
           <Divider orientation={'vertical'} className={'h-4'} />
-          <IconButton data-testid={'view-modal-close'} size={'small'} onClick={handleClose}>
+          <IconButton data-testid={'view-modal-close'} aria-label={t('button.close', 'Close')} sx={compact ? { width: 44, height: 44 } : undefined} size={'small'} onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </div>
       </div>
     );
-  }, [effectiveViewId, handleClose, movePageOpen, outline, t, toView]);
+  }, [compact, effectiveViewId, handleClose, movePageOpen, outline, t, toView]);
 
   // Check if view is in shareWithMe and determine readonly status.
   // `resolvedView` includes the server-fetched fallback, so locked pages opened
@@ -547,13 +551,14 @@ function ViewModal({ viewId, open, onClose }: { viewId?: string; open: boolean; 
       open={open}
       onClose={handleClose}
       fullWidth={true}
+      fullScreen={compact}
       keepMounted={false}
       disableAutoFocus={true}
       // Comment controls use viewport coordinates and therefore portal to the
       // body. Relax focus enforcement only while an external comment surface
       // needs focus; otherwise the modal keeps its normal focus boundary.
       disableEnforceFocus={isCommentPanelOpen || hasPendingComment}
-      disableRestoreFocus={true}
+      disableRestoreFocus={!compact}
       disableScrollLock={true}
       disablePortal={false}
       TransitionComponent={Transition}
@@ -561,9 +566,14 @@ function ViewModal({ viewId, open, onClose }: { viewId?: string; open: boolean; 
         ref,
         // Keep the dialog clear of the comments panel while it is open.
         className: cn(
-          'max-w-[70vw] appflowy-scroll-container transform relative w-[1188px] flex flex-col h-[80vh] appflowy-scroller',
-          isCommentPanelOpen && 'mr-[352px]'
+          'appflowy-scroll-container transform relative flex flex-col appflowy-scroller',
+          compact ? 'm-0 h-[100dvh] max-h-[100dvh] w-full max-w-full rounded-none' : 'max-w-[70vw] w-[1188px] h-[80vh]',
+          isCommentPanelOpen && !compact && 'mr-[352px]'
         ),
+        style: compact ? {
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        } : undefined,
       }}
     >
       {renderModalTitle()}

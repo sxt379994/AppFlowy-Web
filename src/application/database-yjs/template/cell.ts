@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import { validate as isUuid } from 'uuid';
 import * as Y from 'yjs';
 
+import { isAppFlowyObjectId } from '@/utils/appflowy-object-id';
+
 import { FieldType, RowMetaKey } from '@/application/database-yjs/database.type';
 import { getChecked } from '@/application/database-yjs/fields/checkbox/utils';
 import { parseRelationTypeOption } from '@/application/database-yjs/fields/relation/parse';
@@ -145,7 +147,7 @@ export function sanitizeTemplateCells(
               .map((id) => id.trim())
               .filter(Boolean);
       const seen = new Set<string>();
-      const validIds = rawIds.filter((id) => isUuid(id) && !seen.has(id) && seen.add(id));
+      const validIds = rawIds.filter((id) => isAppFlowyObjectId(id) && !seen.has(id) && seen.add(id));
 
       if (validIds.length > 0) {
         const typeOption = parseRelationTypeOption(field);

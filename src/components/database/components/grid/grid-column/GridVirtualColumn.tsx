@@ -14,6 +14,9 @@ import {
 } from '@/components/database/grid/useGridContext';
 import { isFieldEditingDisabled } from '@/components/database/utils/field-editing';
 import { cn } from '@/lib/utils';
+import { useCompactLayout } from '@/utils/use-compact-layout';
+
+import { MobileRecordButton } from './MobileRecordButton';
 
 function GridVirtualColumn({
   data,
@@ -55,6 +58,8 @@ function GridVirtualColumn({
 
   const showActions = Boolean(isHoverRow && columnData.isPrimary && rowData.rowId);
   const rowType = rowData.type;
+  const compact = useCompactLayout();
+  const isMobileRecord = (columnData.isCompact || compact) && rowType === RenderRowType.Row && columnData.isPrimary && rowData.rowId && columnData.fieldId;
 
   return (
     <div
@@ -65,6 +70,7 @@ function GridVirtualColumn({
       key={column.key}
       data-is-primary={columnData.isPrimary}
       onClick={(e) => {
+        if (isMobileRecord) return;
         if (readOnly) return;
         if (disableRelationRollupEdit) return;
         if (
@@ -98,20 +104,20 @@ function GridVirtualColumn({
         width: column.size,
       }}
     >
-      <GridCell
+      {isMobileRecord ? <MobileRecordButton rowId={rowData.rowId!} fieldId={columnData.fieldId!} /> : <GridCell
         rowIndex={row.index}
         columnIndex={column.index}
         columns={columns}
         data={data}
         onResizeColumnStart={onResizeColumnStart}
-      />
+      />}
 
-      {showActions && (
+      {!isMobileRecord && showActions && (
         <div className={'absolute right-2 top-1.5 z-10 min-w-0 transform '}>
           <OpenAction rowId={rowData.rowId!} />
         </div>
       )}
-      {isActiveCell && (
+      {!isMobileRecord && isActiveCell && (
         <div
           style={{
             boxShadow: 'var(--fill-theme-thick) 0px 0px 0px 2px inset, var(--fill-info-light) 0px 0px 0px 1px inset',
