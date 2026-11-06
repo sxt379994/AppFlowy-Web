@@ -26,7 +26,7 @@ export type CollabDocResetPayload = {
 export interface RegisterSyncContext {
   /**
    * The Y.Doc instance to be used for collaboration.
-   * It must have a valid guid (UUID v4).
+   * It must have a UUID guid; API row IDs may retain raw hash version/variant bits.
    */
   doc: YDoc;
   awareness?: awarenessProtocol.Awareness;

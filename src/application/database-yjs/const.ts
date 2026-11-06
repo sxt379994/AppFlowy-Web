@@ -1,7 +1,8 @@
-import { v4 as uuidv4, v5 as uuidv5, parse as uuidParse } from 'uuid';
+import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 
 import { RowMetaKey } from '@/application/database-yjs/database.type';
 import { RowId, YDatabaseRow, YDoc, YjsDatabaseKey, YjsEditorKey } from '@/application/types';
+import { parseAppFlowyObjectId } from '@/utils/appflowy-object-id';
 
 export const DEFAULT_ROW_HEIGHT = 36;
 export const MIN_COLUMN_WIDTH = 150;
@@ -21,13 +22,7 @@ export const getCellData = (rowId: string, fieldId: string, rowMetas: Record<Row
 };
 
 export const metaIdFromRowId = (rowId: string) => {
-  let namespace: Uint8Array;
-
-  try {
-    namespace = uuidParse(rowId);
-  } catch (e) {
-    namespace = uuidParse(generateUUID());
-  }
+  const namespace = parseAppFlowyObjectId(rowId);
 
   return (key: RowMetaKey) => uuidv5(key, namespace).toString();
 };

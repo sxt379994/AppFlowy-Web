@@ -15,6 +15,7 @@ import { deleteOutboxByObjectId, getCurrentOutboxSession, type SyncOutboxSession
 import { YDoc, YjsEditorKey } from '@/application/types';
 import { applyYDoc } from '@/application/ydoc/apply';
 import { database_blob } from '@/proto/database_blob';
+import { stringifyAppFlowyObjectId } from '@/utils/appflowy-object-id';
 import { Log } from '@/utils/log';
 
 import { createDatabaseBlobDiffPageStage, type DatabaseBlobDiffPageStage } from './page-stage';
@@ -540,7 +541,7 @@ function getDocState(state?: database_blob.ICollabDocState | null) {
 
 function decodeRowId(rowIdBytes?: Uint8Array | null) {
   if (!rowIdBytes || rowIdBytes.length !== 16) return null;
-  return uuidStringify(rowIdBytes);
+  return stringifyAppFlowyObjectId(rowIdBytes);
 }
 
 function applySeedToCachedDoc(rowKey: string, seed: DatabaseRowDocSeed) {
