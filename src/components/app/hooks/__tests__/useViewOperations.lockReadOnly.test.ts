@@ -1,5 +1,6 @@
 import { AccessLevel, View, ViewExtra, ViewLayout } from '@/application/types';
 import { getPlatform } from '@/utils/platform';
+import { isMobileEditingEnabled } from '@/utils/runtime-config';
 
 import { getViewReadOnlyStatus } from '../useViewOperations';
 
@@ -12,8 +13,13 @@ jest.mock('@/application/services/domains', () => ({
 }));
 jest.mock('@/application/view-loader', () => ({ openView: jest.fn() }));
 jest.mock('@/utils/platform', () => ({ getPlatform: jest.fn(() => ({ isMobile: false })) }));
+jest.mock('@/utils/runtime-config', () => ({
+  getConfigValue: jest.fn((_key: string, defaultValue: string) => defaultValue),
+  isMobileEditingEnabled: jest.fn(() => false),
+}));
 
 const mockGetPlatform = getPlatform as jest.MockedFunction<typeof getPlatform>;
+const mockIsMobileEditingEnabled = isMobileEditingEnabled as jest.MockedFunction<typeof isMobileEditingEnabled>;
 
 function createView(overrides: Partial<View>): View {
   return {
@@ -43,16 +49,25 @@ function shareWithMeOutline(...children: View[]): View[] {
 describe('getViewReadOnlyStatus (lock + access)', () => {
   beforeEach(() => {
     mockGetPlatform.mockReturnValue({ isMobile: false } as ReturnType<typeof getPlatform>);
+    mockIsMobileEditingEnabled.mockReturnValue(false);
   });
 
   it('returns false when there is no outline', () => {
     expect(getViewReadOnlyStatus('view-id', undefined)).toBe(false);
   });
 
-  it('always returns true on mobile, regardless of lock/access', () => {
+  it('keeps mobile read-only when mobile editing is not enabled', () => {
     mockGetPlatform.mockReturnValue({ isMobile: true } as ReturnType<typeof getPlatform>);
 
     expect(getViewReadOnlyStatus('view-id', [])).toBe(true);
+  });
+
+  it('uses the normal permission checks on mobile when mobile editing is enabled', () => {
+    mockGetPlatform.mockReturnValue({ isMobile: true } as ReturnType<typeof getPlatform>);
+    mockIsMobileEditingEnabled.mockReturnValue(true);
+
+    expect(getViewReadOnlyStatus('view-id', [createView({ is_locked: false })])).toBe(false);
+    expect(getViewReadOnlyStatus('view-id', [createView({ is_locked: true })])).toBe(true);
   });
 
   it('returns true for a locked view in the workspace outline', () => {
