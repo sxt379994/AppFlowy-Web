@@ -2,7 +2,6 @@ import { styled } from '@mui/material/styles';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import React, { ReactElement, useCallback } from 'react';
 
-
 const BasePuller = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'light' ? '#dadada' : '#666',
   borderRadius: 3,
@@ -32,41 +31,39 @@ const HorizontalRightPuller = styled(BasePuller)(() => ({
   right: 0,
 }));
 
-const PullerWrapper = styled('div')<{ anchor: 'top' | 'left' | 'bottom' | 'right' }>(
-  ({ anchor }) => ({
-    position: 'absolute',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 11,
-    ...(anchor === 'top' && {
-      bottom: 8,
-      height: 6,
-      left: 0,
-      right: 0,
-    }),
-    ...(anchor === 'bottom' && {
-      top: 8,
-      left: 0,
-      right: 0,
-      height: 6,
-    }),
-    ...(anchor === 'left' && {
-      right: 8,
-      top: 0,
-      bottom: 0,
-      width: 6,
-    }),
-    ...(anchor === 'right' && {
-      left: 8,
-      top: 0,
-      bottom: 0,
-      width: 6,
-    }),
+const PullerWrapper = styled('div')<{ anchor: 'top' | 'left' | 'bottom' | 'right' }>(({ anchor }) => ({
+  position: 'absolute',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 11,
+  ...(anchor === 'top' && {
+    bottom: 8,
+    height: 6,
+    left: 0,
+    right: 0,
   }),
-);
+  ...(anchor === 'bottom' && {
+    top: 8,
+    left: 0,
+    right: 0,
+    height: 6,
+  }),
+  ...(anchor === 'left' && {
+    right: 8,
+    top: 0,
+    bottom: 0,
+    width: 6,
+  }),
+  ...(anchor === 'right' && {
+    left: 8,
+    top: 0,
+    bottom: 0,
+    width: 6,
+  }),
+}));
 
-export function MobileDrawer ({
+export function MobileDrawer({
   children,
   triggerNode,
   anchor = 'bottom',
@@ -89,22 +86,28 @@ export function MobileDrawer ({
   swipeAreaHeight?: number | undefined;
   maxHeight?: number | undefined;
   showPuller?: boolean;
-  topOffset?: number;
+  topOffset?: number | string;
 }) {
+  const toggleDrawer = useCallback(
+    (open: boolean) => {
+      return (event: React.KeyboardEvent | React.MouseEvent) => {
+        if (
+          event &&
+          event.type === 'keydown' &&
+          ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')
+        ) {
+          return;
+        }
 
-  const toggleDrawer = useCallback((open: boolean) => {
-    return (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (event && event.type === 'keydown' && ((event as React.KeyboardEvent).key === 'Tab' || (event as React.KeyboardEvent).key === 'Shift')) {
-        return;
-      }
-
-      if (open) {
-        onOpen?.();
-      } else {
-        onClose?.();
-      }
-    };
-  }, [onClose, onOpen]);
+        if (open) {
+          onOpen?.();
+        } else {
+          onClose?.();
+        }
+      };
+    },
+    [onClose, onOpen]
+  );
 
   const drawerContent = (
     <>
@@ -130,8 +133,10 @@ export function MobileDrawer ({
     paperStyle.top = topOffset;
 
     if (!swipeAreaHeight) {
-      paperStyle.height = `calc(100% - ${topOffset}px)`;
-    } else if (typeof swipeAreaHeight === 'number') {
+      const offset = typeof topOffset === 'number' ? `${topOffset}px` : topOffset;
+
+      paperStyle.height = `calc(100% - ${offset})`;
+    } else if (typeof swipeAreaHeight === 'number' && typeof topOffset === 'number') {
       paperStyle.height = Math.max(0, swipeAreaHeight - topOffset);
     }
   }

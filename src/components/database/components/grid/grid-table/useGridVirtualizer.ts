@@ -6,11 +6,6 @@ import { RenderColumn } from '@/components/database/components/grid/grid-column'
 import { GridColumnType } from '@/components/database/components/grid/grid-column/useRenderFields';
 import { getRenderRowKey, RenderRow, RenderRowType } from '@/components/database/components/grid/grid-row';
 import { getScrollParent } from '@/components/global-comment/utils';
-import { getPlatform } from '@/utils/platform';
-
-const MIN_HEIGHT = 36;
-
-export const PADDING_INLINE = getPlatform().isMobile ? 21 : 96;
 
 const logDebug = (..._args: Parameters<typeof console.debug>) => {
   if (import.meta.env.DEV) {
@@ -20,6 +15,7 @@ const logDebug = (..._args: Parameters<typeof console.debug>) => {
 
 export function useGridVirtualizer({ data, columns }: { columns: RenderColumn[]; data: RenderRow[] }) {
   const { isDocumentBlock, paddingStart, paddingEnd } = useDatabaseContext();
+  const compact = columns.some((column) => column.isCompact);
   const parentRef = useRef<HTMLDivElement | null>(null);
   const parentOffsetRef = useRef<number | null>(null);
   const [parentOffset, setParentOffset] = useState(0);
@@ -150,7 +146,7 @@ export function useGridVirtualizer({ data, columns }: { columns: RenderColumn[];
     estimateSize: (index) => {
       if (data[index]?.type === RenderRowType.GroupHeader) return 44;
       if (data[index]?.type === RenderRowType.GroupSeparator) return 12;
-      return MIN_HEIGHT;
+      return compact ? 48 : 36;
     },
     overscan: 10,
     scrollMargin: parentOffset,
@@ -221,8 +217,8 @@ export function useGridVirtualizer({ data, columns }: { columns: RenderColumn[];
     return () => observer.disconnect();
   }, []);
 
-  const effectivePaddingStart = paddingStart || PADDING_INLINE;
-  const effectivePaddingEnd = paddingEnd || PADDING_INLINE;
+  const effectivePaddingStart = paddingStart ?? (compact ? 16 : 96);
+  const effectivePaddingEnd = paddingEnd ?? (compact ? 16 : 96);
 
   const lastColumn = columns[columns.length - 1];
   const isLastColumnNewProperty = lastColumn?.type === GridColumnType.NewProperty;
@@ -272,5 +268,6 @@ export function useGridVirtualizer({ data, columns }: { columns: RenderColumn[];
     columnVirtualizer,
     scrollMarginTop: parentOffset,
     isReady,
+    effectivePaddingEnd,
   };
 }

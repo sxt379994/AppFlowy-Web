@@ -13,6 +13,7 @@ import type { Row } from '@/application/database-yjs';
 import { useReorderRowDispatch } from '@/application/database-yjs/dispatch';
 import { useAIEnabled } from '@/components/app/app.hooks';
 import { cn } from '@/lib/utils';
+import { useCompactLayout, useElementWidth } from '@/utils/use-compact-layout';
 
 import {
   LIST_DESKTOP_INLINE_PADDING,
@@ -58,6 +59,9 @@ function ListContent() {
   const [visibleRowLimit, setVisibleRowLimit] = useState(LIST_INITIAL_ROW_LIMIT);
   const [groupLimits, setGroupLimits] = useState<Record<string, number>>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const containerWidth = useElementWidth(scrollContainerRef);
+  const compactLayout = useCompactLayout();
+  const compact = compactLayout || (containerWidth !== undefined && containerWidth < 768);
   const reorderRow = useReorderRowDispatch();
 
   useEffect(() => {
@@ -144,8 +148,8 @@ function ListContent() {
     [reorderRow, rowOrders]
   );
 
-  const effectivePaddingStart = paddingStart || LIST_DESKTOP_INLINE_PADDING;
-  const effectivePaddingEnd = paddingEnd || LIST_DESKTOP_INLINE_PADDING;
+  const effectivePaddingStart = paddingStart ?? (compact ? 16 : LIST_DESKTOP_INLINE_PADDING);
+  const effectivePaddingEnd = paddingEnd ?? (compact ? 16 : LIST_DESKTOP_INLINE_PADDING);
   const contentStyle = {
     paddingInlineEnd: effectivePaddingEnd,
     paddingInlineStart: Math.max(effectivePaddingStart - LIST_ROW_ACTIONS_WIDTH, 0),

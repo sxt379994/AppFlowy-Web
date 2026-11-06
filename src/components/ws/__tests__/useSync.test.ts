@@ -283,6 +283,25 @@ describe('useSync reconnect binding', () => {
     jest.clearAllMocks();
   });
 
+  it('syncs an API hash-derived row ID without weakening other collab ID checks', () => {
+    const ws = { ...createWs(), readyState: WebSocket.OPEN } as AppflowyWebSocketType;
+    const bc = createBroadcastChannel();
+    const doc = createDoc('fdeff667-1ef3-1a2a-d01b-e4dfd9b5ceda');
+    const malformed = createDoc('not-an-object-id');
+    const { result, unmount } = renderHook(() => useSync(ws, bc, defaultEventEmitter, defaultWorkspaceId));
+
+    expect(() => result.current.registerSyncContext({ doc, collabType: Types.Document })).toThrow('Invalid Y.Doc guid');
+    expect(() => result.current.registerSyncContext({ doc: malformed, collabType: Types.DatabaseRow })).toThrow('Invalid Y.Doc guid');
+    act(() => {
+      result.current.registerSyncContext({ doc, collabType: Types.DatabaseRow });
+    });
+    expect(ws.sendMessage).toHaveBeenCalledTimes(1);
+    expect(bc.postMessage).toHaveBeenCalledTimes(1);
+    unmount();
+    doc.destroy();
+    malformed.destroy();
+  });
+
   it('does not bind registered documents twice when the websocket opens for the first time', () => {
     const ws = {
       ...createWs(),

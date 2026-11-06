@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCompactLayout } from '@/utils/use-compact-layout';
 
 function DatabaseRowModal({
   open,
@@ -41,6 +42,7 @@ function DatabaseRowModal({
   const duplicateRow = useDuplicateRowDispatch();
   const deleteRows = useTrashAwareDeleteRowsDispatch();
   const [duplicateLoading, setDuplicateLoading] = useState(false);
+  const compact = useCompactLayout();
 
   return (
     <Dialog
@@ -49,24 +51,33 @@ function DatabaseRowModal({
         onOpenChange(false);
       }}
       fullWidth={true}
+      fullScreen={compact}
       keepMounted={false}
       disableAutoFocus={false}
       disableEnforceFocus={false}
-      disableRestoreFocus={true}
+      disableRestoreFocus={!compact}
       hideBackdrop={!!openPageModalViewId}
       PaperProps={{
-        className: `max-w-[70vw] relative w-[1188px] h-[80vh] overflow-hidden flex flex-col`,
+        className: compact
+          ? 'relative m-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-full flex-col overflow-hidden rounded-none'
+          : 'max-w-[70vw] relative w-[1188px] h-[80vh] overflow-hidden flex flex-col',
+        style: compact ? {
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        } : undefined,
       }}
     >
       <DialogContent className={'flex h-full w-full flex-col px-0 py-0'}>
-        <DialogTitle className={'flex max-h-[48px] flex-1 items-center justify-end gap-2 px-2'}>
+        <DialogTitle component='div' className={'flex h-14 shrink-0 items-center justify-end gap-2 border-b border-border-primary px-2 py-1'}>
           <div className='flex flex-1 items-center'>
-            {openPageModalViewId && (
+            {(compact || openPageModalViewId) && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     size={'icon'}
                     variant='ghost'
+                    aria-label={t('button.back', 'Back')}
+                    className={compact ? 'h-11 w-11' : undefined}
                     onClick={() => {
                       onOpenChange(false);
                     }}
@@ -84,6 +95,8 @@ function DatabaseRowModal({
               <TooltipTrigger asChild>
                 <Button
                   data-testid='row-detail-open-full-page'
+                  aria-label={t('grid.rowPage.openAsFullPage')}
+                  className={compact ? 'h-11 w-11' : undefined}
                   size={'icon'}
                   variant='ghost'
                   onClick={() => {
@@ -101,9 +114,9 @@ function DatabaseRowModal({
             <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className={'h-7 w-7'}>
+                  <div className={compact ? 'h-11 w-11' : 'h-7 w-7'}>
                     <DropdownMenuTrigger asChild>
-                      <Button size={'icon'} variant='ghost' data-testid='row-detail-more-actions'>
+                      <Button size={'icon'} variant='ghost' aria-label={t('grid.rowPage.moreRowActions')} className={compact ? 'h-11 w-11' : undefined} data-testid='row-detail-more-actions'>
                         <MoreIcon />
                       </Button>
                     </DropdownMenuTrigger>
@@ -152,7 +165,7 @@ function DatabaseRowModal({
           ) : null}
         </DialogTitle>
 
-        <AFScroller overflowXHidden className={'appflowy-scroll-container w-full flex-1'}>
+        <AFScroller overflowXHidden className={'appflowy-scroll-container min-h-0 w-full flex-1'}>
           <DatabaseRow rowId={rowId} />
         </AFScroller>
       </DialogContent>

@@ -9,6 +9,7 @@ import AddIconCover from '@/components/view-meta/AddIconCover';
 import { cn } from '@/lib/utils';
 import { isFlagEmoji } from '@/utils/emoji';
 import { createHotkey, HOT_KEY_NAME } from '@/utils/hotkeys';
+import { useCompactLayout } from '@/utils/use-compact-layout';
 
 export function Title({
   icon,
@@ -28,6 +29,7 @@ export function Title({
   templateStyle?: boolean;
 }) {
   const readOnly = useReadOnly();
+  const compact = useCompactLayout();
   const [value, setValue] = useState(name || '');
 
   useEffect(() => {
@@ -120,7 +122,7 @@ export function Title({
           <AddIconCover
             iconTabs={['emoji']}
             defaultIconTab={'emoji'}
-            visible={isHover}
+            visible={isHover || compact}
             hasIcon={!!icon}
             hasCover={hasCover}
             onUpdateIcon={handleUpdateIcon}
@@ -148,7 +150,7 @@ export function Title({
           {!templateStyle ? renderIcon() : null}
           <div className={cn('w-full py-2', templateStyle && 'pb-0 pt-2')}>
             <TextareaAutosize
-              autoFocus
+              autoFocus={!compact}
               aria-label={templateStyle ? 'Template name' : 'Row title'}
               placeholder={'Untitled'}
               value={value}

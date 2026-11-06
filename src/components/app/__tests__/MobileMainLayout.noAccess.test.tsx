@@ -31,6 +31,10 @@ jest.mock('@/components/app/Main', () => ({
   default: () => <div data-testid='main-content' />,
 }));
 
+jest.mock('@/components/app/ConnectBanner', () => ({
+  ConnectBanner: () => <div data-testid='connect-banner' />,
+}));
+
 jest.mock('@/components/error/PageHasBeenDeleted', () => ({
   __esModule: true,
   default: () => <div data-testid='deleted-page' />,
@@ -53,6 +57,7 @@ describe('MobileMainLayout access state', () => {
     render(<MobileMainLayout />);
 
     await screen.findByTestId('mobile-topbar');
+    expect(screen.getByTestId('connect-banner')).toBeTruthy();
 
     const error = screen.getByTestId('record-not-found');
 

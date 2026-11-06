@@ -75,6 +75,7 @@ function GridVirtualRow({
   );
 
   const isRegularRow = rowType === RenderRowType.Row;
+  const isMobile = columns.some((column) => column.isCompact);
 
   useEffect(() => {
     const element = innerRef.current;
@@ -133,7 +134,7 @@ function GridVirtualRow({
     elementRef: innerRef,
     dragHandleRef,
     // Firefox prevents text selection inside a native draggable ancestor.
-    enabled: isRegularRow && !hasActiveCell && !isGrouped,
+    enabled: isRegularRow && !hasActiveCell && !isGrouped && !isMobile,
     instanceId,
     rowId,
     rowIndex,
@@ -212,7 +213,7 @@ function GridVirtualRow({
         className={cn('relative flex')}
       >
         <div style={{ width: `${before}px` }}>
-          {isRegularRow && !readOnly && (
+          {isRegularRow && !readOnly && !isMobile && (
             <HoverControls
               state={state}
               dragHandleRef={(el) => {
@@ -231,7 +232,8 @@ function GridVirtualRow({
           data-testid={`grid-row-${rowId}`}
           data-row-key={rowKey}
           className={cn(
-            'grid-table-row-content relative flex min-h-[36px]',
+            'grid-table-row-content relative flex',
+            isMobile ? 'min-h-12' : 'min-h-9',
             state.type === GridDragState.DRAGGING && 'opacity-40'
           )}
         >

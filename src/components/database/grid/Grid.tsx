@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useDatabaseContext, useDatabaseViewId } from '@/application/database-yjs';
 import { useRenderFields } from '@/components/database/components/grid/grid-column';
 import GridVirtualizer from '@/components/database/components/grid/grid-table/GridVirtualizer';
 import { useGridGrouping } from '@/components/database/grid/GridGroupingContext';
 import { GridProvider } from '@/components/database/grid/GridProvider';
+import { useElementWidth } from '@/utils/use-compact-layout';
 
 export function Grid() {
-  const { fields } = useRenderFields();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const containerWidth = useElementWidth(containerRef);
+  const { fields } = useRenderFields(containerWidth);
   const viewId = useDatabaseViewId();
   const grouping = useGridGrouping();
   const { rowOrders } = grouping;
@@ -23,6 +26,7 @@ export function Grid() {
   return (
     <GridProvider grouping={grouping}>
       <div
+        ref={containerRef}
         data-testid='database-grid'
         // Rows the grid lists after filters and sorts; large-database tests read it.
         data-row-count={rowOrders?.length}

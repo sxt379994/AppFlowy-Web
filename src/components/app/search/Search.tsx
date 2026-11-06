@@ -24,6 +24,7 @@ import { findAncestors } from '@/components/chat/lib/views';
 import { dropdownMenuItemVariants } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { createHotkey, createHotKeyLabel, HOT_KEY_NAME } from '@/utils/hotkeys';
+import { useCompactLayout } from '@/utils/use-compact-layout';
 
 function getFallbackAIChatParent(outline: View[] | undefined) {
   if (!outline?.length) return;
@@ -37,7 +38,8 @@ function getErrorMessage(error: unknown) {
   return 'Something went wrong';
 }
 
-export function Search() {
+export function Search({ onNavigate }: { onNavigate?: () => void } = {}) {
+  const compact = useCompactLayout();
   const [open, setOpen] = useState<boolean>(false);
   const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState<string>('');
@@ -52,6 +54,11 @@ export function Search() {
     setOpen(false);
     setSearchValue('');
   }, []);
+
+  const handleResultClose = useCallback(() => {
+    handleClose();
+    onNavigate?.();
+  }, [handleClose, onNavigate]);
 
   const handleAskAI = useCallback(
     async (query: string, sources?: AIChatRagSource[]) => {
@@ -117,14 +124,14 @@ export function Search() {
         }
 
         await toView(created.view_id);
-        handleClose();
+        handleResultClose();
       } catch (error) {
         notify.error(getErrorMessage(error));
       } finally {
         setAskingAI(false);
       }
     },
-    [addPage, aiEnabled, currentViewId, currentWorkspaceId, handleClose, outline, t, toView]
+    [addPage, aiEnabled, currentViewId, currentWorkspaceId, handleResultClose, outline, t, toView]
   );
 
   const onKeyDown = useCallback((e: KeyboardEvent) => {
@@ -161,16 +168,17 @@ export function Search() {
     <>
       <Tooltip delayDuration={1000}>
         <TooltipTrigger asChild>
-          <div
+          <button
+            type='button'
             onClick={(e) => {
               e.currentTarget.blur();
               setOpen(true);
             }}
-            className={dropdownMenuItemVariants()}
+            className={`${dropdownMenuItemVariants()} w-full ${compact ? 'min-h-12 rounded-lg bg-fill-content-hover px-3 text-base' : ''}`}
           >
             <SearchIcon />
             {t('button.search')}
-          </div>
+          </button>
         </TooltipTrigger>
         <TooltipContent side='right'>
           <div className={'flex flex-col gap-1'}>
@@ -181,19 +189,22 @@ export function Search() {
       </Tooltip>
 
       <Dialog
-        disableRestoreFocus={true}
+        disableRestoreFocus={!compact}
+        fullScreen={compact}
         open={open}
         onClose={handleClose}
         classes={{
-          container: 'items-start max-md:mt-auto max-md:items-center mt-[10%]',
-          paper: 'overflow-hidden min-w-[600px] w-[600px] max-w-[70vw]',
+          container: compact ? '' : 'items-start mt-[10%]',
+          paper: compact ? 'm-0 h-[100dvh] max-h-[100dvh] min-w-0 w-full max-w-full overflow-hidden rounded-none' : 'overflow-hidden min-w-[600px] w-[600px] max-w-[70vw]',
         }}
+        PaperProps={{ style: compact ? { paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' } : undefined }}
       >
         <div className={'flex w-full gap-2 border-b border-line-default p-4'}>
           <div className={'flex w-full items-center gap-4'}>
             <SearchIcon className={'mr-[1px] h-5 w-5 opacity-60'} />
 
             <InputBase
+              inputProps={{ 'aria-label': t('searchLabel') }}
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               autoFocus={true}
@@ -201,11 +212,14 @@ export function Search() {
               fullWidth={true}
               placeholder={t('searchLabel')}
             />
-            <span
+            <button
+              type='button'
+              aria-label={t('button.clear', 'Clear search')}
+              disabled={!searchValue}
               style={{
                 visibility: searchValue ? 'visible' : 'hidden',
               }}
-              className={'cursor-pointer rounded-full bg-fill-content-hover p-0.5 opacity-60 hover:opacity-100'}
+              className={'flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-fill-content-hover opacity-60 hover:opacity-100'}
               onMouseDown={(e) => e.preventDefault()}
               onClick={(e) => {
                 e.preventDefault();
@@ -213,13 +227,14 @@ export function Search() {
               }}
             >
               <CloseIcon className={'h-3 w-3'} />
-            </span>
+            </button>
+            {compact && <button type='button' aria-label={t('button.close', 'Close')} className='h-11 shrink-0 px-2 text-sm' onClick={handleClose}>{t('button.close', 'Close')}</button>}
           </div>
         </div>
         {!searchValue ? (
-          <RecentViews loading={loadingRecentViews} recentViews={recentViews} onClose={handleClose} />
+          <RecentViews loading={loadingRecentViews} recentViews={recentViews} onClose={handleResultClose} />
         ) : (
-          <BestMatch askingAI={askingAI} searchValue={searchValue} onAskAI={handleAskAI} onClose={handleClose} />
+          <BestMatch askingAI={askingAI} searchValue={searchValue} onAskAI={handleAskAI} onClose={handleResultClose} />
         )}
       </Dialog>
     </>

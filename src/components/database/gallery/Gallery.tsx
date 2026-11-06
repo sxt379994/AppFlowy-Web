@@ -17,6 +17,7 @@ import { useReorderRowDispatch } from '@/application/database-yjs/dispatch';
 import { ReactComponent as PlusIcon } from '@/assets/icons/plus.svg';
 import { useDatabaseSearch } from '@/components/database/components/conditions/DatabaseSearchContext';
 import { cn } from '@/lib/utils';
+import { useCompactLayout, useElementWidth } from '@/utils/use-compact-layout';
 
 import {
   GALLERY_DESKTOP_INLINE_PADDING,
@@ -128,6 +129,9 @@ export function Gallery() {
   const [reorderAnnouncement, setReorderAnnouncement] = useState('');
   const rowOrdersRef = useRef(rowOrders);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const containerWidth = useElementWidth(scrollContainerRef);
+  const compactLayout = useCompactLayout();
+  const compact = compactLayout || (containerWidth !== undefined && containerWidth < 768);
   const gridRef = useRef<HTMLDivElement>(null);
   const cardWidth = getGalleryCardWidth(settings.cardSize);
   const columnCount = useGalleryColumnCount(gridRef, cardWidth, rowOrders !== undefined);
@@ -247,8 +251,8 @@ export function Gallery() {
     [handleDropRow, t]
   );
 
-  const effectivePaddingStart = paddingStart ?? GALLERY_DESKTOP_INLINE_PADDING;
-  const effectivePaddingEnd = paddingEnd ?? GALLERY_DESKTOP_INLINE_PADDING;
+  const effectivePaddingStart = paddingStart ?? (compact ? 16 : GALLERY_DESKTOP_INLINE_PADDING);
+  const effectivePaddingEnd = paddingEnd ?? (compact ? 16 : GALLERY_DESKTOP_INLINE_PADDING);
   const containerClassName = cn(
     'database-gallery appflowy-custom-scroller min-h-0 w-full [color-scheme:light] [[data-dark-mode=true]_&]:[color-scheme:dark]',
     isDocumentBlock ? 'overflow-visible' : 'h-full flex-1 overflow-y-auto overflow-x-hidden'

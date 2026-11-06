@@ -5,6 +5,7 @@ import * as Y from 'yjs';
 import { initSync, SyncContext } from '@/application/services/js-services/sync-protocol';
 import { Types } from '@/application/types';
 import { messages } from '@/proto/messages';
+import { isAppFlowyObjectId } from '@/utils/appflowy-object-id';
 import { Log } from '@/utils/log';
 
 import { SyncRefs } from './syncRefs';
@@ -146,8 +147,12 @@ export function useSyncContextLifecycle(
 
   const registerSyncContext = useCallback(
     (context: RegisterSyncContext): SyncContext => {
-      if (!uuidValidate(context.doc.guid)) {
-        throw new Error(`Invalid Y.Doc guid: ${context.doc.guid}. It must be a valid UUID v4.`);
+      const validId = context.collabType === Types.DatabaseRow
+        ? isAppFlowyObjectId(context.doc.guid)
+        : uuidValidate(context.doc.guid);
+
+      if (!validId) {
+        throw new Error(`Invalid Y.Doc guid: ${context.doc.guid}. It must be a valid AppFlowy object ID.`);
       }
 
       // Cancel any pending deferred cleanup for this doc
